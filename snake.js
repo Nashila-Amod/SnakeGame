@@ -1,8 +1,14 @@
-/* CREATION OF THE WORLD */
-
-var world = [];
-var ROWS = 80, COLS = 40;
+let world = [];
+var ROWS = 40, COLS = 80;
 var EMPTY = "EMPTY", SNAKE = "SNAKE", FRUIT = "FRUIT";
+
+let snake = [];
+var LEFT = 0, UP = 1, RIGHT = 2, DOWN  = 3;
+var KEY_LEFT = 37, KEY_UP = 38, KEY_RIGHT = 39, KEY_DOWN  = 40;
+
+var canvas,	canvas_context;
+
+/* CREATION OF THE WORLD */
 
 function createWorld(rowCount, columnCount)
 {
@@ -41,16 +47,50 @@ function draw()
         for(var y = 0 ; y < COLS ; y++)
         {
             // sets the fillstyle depending on the content of the cell
-            if(world[x][y] === EMPTY)
-            {
-                canvas_context.fillStyle = "#0ff";
-            }
+            switch (getCellWorld(x,y)) {
+                
+				case EMPTY:
+					canvas_context.fillStyle = "#0ff";
+                    break;
+                    
+				case SNAKE:
+					canvas_context.fillStyle = "#fff";
+					break;
+			}
 
-            canvas_context.fillRect(x*widthCell, y*heightCell, widthCell, heightCell);
+            canvas_context.fillRect(y*widthCell, x*heightCell, widthCell, heightCell);
         }
-        
     }
 }
+
+
+/* CREATION OF THE SNAKE */
+
+
+function createSnake(x_row,y_col, snakeLength)
+{
+    setCellWorld(SNAKE, x_row, y_col);
+    snake.push([x_row, y_col]); // Add the new position of the head at the end of the snake array
+
+    for(var x = 0; x < snakeLength ; x++)
+    {
+        x_row++;
+        grow(x_row, y_col);
+    }
+}
+
+function grow(x_row, y_col)
+{
+    setCellWorld(SNAKE, x_row, y_col);
+    return snake.unshift(x_row, y_col);
+}
+
+function removeTail()
+{
+    return snake.shift();
+}
+
+
 
 /* FUNCTION MAIN : STARTS THE GAME */
 
@@ -66,9 +106,20 @@ function main()
     document.body.appendChild(canvas);
 
     // Initiate the game
-    createWorld(COLS, ROWS);
-    draw();    
+    createWorld(ROWS, COLS);
+
+    var snakeX = Math.floor(ROWS/2);
+    var snakeY = Math.floor(COLS/ 2);
+	createSnake(snakeX - 1, snakeY - 1, 15);
+   
+    loop();    
 }
+
+function loop() {
+    draw();
+}
+
+
 
 main();
 
