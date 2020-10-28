@@ -66,6 +66,10 @@ function draw()
                         canvas_context.fillStyle = "#fff";
                     }
 
+                    break;
+                
+                case FRUIT :
+                    canvas_context.fillStyle = "#000";
 					break;
 			}
 
@@ -108,6 +112,29 @@ function removeTail(x_row,y_col)
 }
 
 
+/* GENERATING FOOD */
+
+function setFood() {
+
+    var empty = [];
+    
+	// iterate through the grid and find all empty cells
+	for (var x= 0; x < ROWS; x++) {
+
+		for (var y = 0; y < COLS; y++) {
+
+			if (getCellWorld(x,y) === EMPTY) {
+                
+				empty.push([x,y]);
+			}
+		}
+    }
+    
+	// chooses a random cell
+    var fruitCell = empty[Math.round(Math.random()*(empty.length - 1))];
+    setCellWorld(FRUIT, fruitCell[0], fruitCell[1]);
+}
+
 
 /* FUNCTION MAIN : STARTS THE GAME */
 
@@ -125,9 +152,14 @@ function main()
     // Initiate the game
     createWorld(ROWS, COLS);
 
+    // Initiate the snake
     var snakeX = Math.floor(ROWS/2);
     var snakeY = Math.floor(COLS/ 2);
     createSnake(snakeX - 1, snakeY - 1, 1);
+
+    // Set food on the grid
+    setFood();
+
     draw();
 }
 
