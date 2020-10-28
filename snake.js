@@ -3,8 +3,8 @@ var ROWS = 40, COLS = 80;
 var EMPTY = "EMPTY", SNAKE = "SNAKE", FRUIT = "FRUIT";
 
 let snake = [];
-var LEFT = 0, UP = 1, RIGHT = 2, DOWN  = 3;
-var KEY_LEFT = 37, KEY_UP = 38, KEY_RIGHT = 39, KEY_DOWN  = 40;
+const LEFT = 0, UP = 1, RIGHT = 2, DOWN = 3, NONE = -1;
+let direction = NONE;
 
 var canvas,	canvas_context;
 
@@ -40,6 +40,7 @@ function draw()
 {
     var widthCell = canvas.width/COLS;
     var heightCell = canvas.height/ROWS;
+    var head = true;
     
     // Iterate through the world grid and draw all cells
     for(var x = 0; x < ROWS ; x++)
@@ -54,7 +55,17 @@ function draw()
                     break;
                     
 				case SNAKE:
-					canvas_context.fillStyle = "#fff";
+
+                    if(head)
+                    {
+                        canvas_context.fillStyle = "#ff0000";
+                        head = false;
+                    }
+                    else
+                    {
+                        canvas_context.fillStyle = "#fff";
+                    }
+
 					break;
 			}
 
@@ -69,14 +80,19 @@ function draw()
 
 function createSnake(x_row,y_col, snakeLength)
 {
-    setCellWorld(SNAKE, x_row, y_col);
-    snake.push([x_row, y_col]); // Add the new position of the head at the end of the snake array
+    insertHead(x_row, y_col);
 
-    for(var x = 0; x < snakeLength ; x++)
+    for(var x = 1; x < snakeLength ; x++)
     {
         x_row++;
         grow(x_row, y_col);
     }
+}
+
+function insertHead(x_row, y_col)
+{
+    setCellWorld(SNAKE, x_row, y_col);
+    snake.push([x_row, y_col]); // Add the new position of the head at the end of the snake array
 }
 
 function grow(x_row, y_col)
@@ -85,8 +101,9 @@ function grow(x_row, y_col)
     return snake.unshift(x_row, y_col);
 }
 
-function removeTail()
+function removeTail(x_row,y_col)
 {
+    setCellWorld(EMPTY, x_row, y_col);
     return snake.shift();
 }
 
@@ -110,17 +127,84 @@ function main()
 
     var snakeX = Math.floor(ROWS/2);
     var snakeY = Math.floor(COLS/ 2);
-	createSnake(snakeX - 1, snakeY - 1, 15);
-   
-    loop();    
-}
-
-function loop() {
+    createSnake(snakeX - 1, snakeY - 1, 1);
     draw();
 }
 
+function changing_direction()
+{
+    const keyPressed = event.keyCode;
 
+    const LEFT_KEY = 37;
+    const RIGHT_KEY = 39;
+    const UP_KEY = 38;
+    const DOWN_KEY = 40;
+
+    if (keyPressed === LEFT_KEY && direction !== RIGHT) {
+        
+        direction = LEFT;
+    }
+
+    if (keyPressed === UP_KEY && direction !== DOWN) {
+        
+        direction = UP;
+    }
+
+    if (keyPressed === RIGHT_KEY && direction !== LEFT) {
+        
+        direction = RIGHT;
+    }
+
+    if (keyPressed === DOWN_KEY && direction !== UP) {
+       
+        direction = DOWN;   
+    }
+}
+
+function step()
+{
+    move_snake();
+    draw();
+}
+
+function move_snake()
+{
+    // Get the position of the head :
+    var head = snake[snake.length - 1]
+    var headX = head[0];
+    var headY = head[1];
+
+    switch (direction) {
+
+        case LEFT:
+            headY--; //decrease column
+            break;
+
+        case UP:
+            headX--; //decrease row
+            break;
+
+        case RIGHT:
+           headY++;
+            break;
+
+        case DOWN:
+            headX++;
+            break;
+    }
+
+    // Get the position of the tail
+    var tail = snake[0];
+    var tailX = tail[0];
+    var tailY = tail[1];
+
+    // Remove the last position of the tail
+    removeTail(tailX, tailY);
+    
+    // Add new head 
+    insertHead(headX, headY);
+}
 
 main();
-
-
+document.addEventListener("keydown", changing_direction);
+var myVar = setInterval(step, 50);
