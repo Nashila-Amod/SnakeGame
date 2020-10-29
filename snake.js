@@ -7,6 +7,9 @@ const LEFT = 0, UP = 1, RIGHT = 2, DOWN = 3, NONE = -1;
 let direction = NONE;
 
 var canvas,	canvas_context;
+var gameActive, gameControl;
+// render X times per second
+var x = 10;
 
 /* CREATION OF THE WORLD */
 
@@ -36,11 +39,11 @@ function getCellWorld(row, column)
 }
 
 /* Render the world grid to the canvas */
+
 function draw()
 {
     var widthCell = canvas.width/COLS;
     var heightCell = canvas.height/ROWS;
-    var head = true;
     
     // Iterate through the world grid and draw all cells
     for(var x = 0; x < ROWS ; x++)
@@ -55,17 +58,7 @@ function draw()
                     break;
                     
 				case SNAKE:
-
-                    if(head)
-                    {
-                        canvas_context.fillStyle = "#ff0000";
-                        head = false;
-                    }
-                    else
-                    {
-                        canvas_context.fillStyle = "#fff";
-                    }
-
+                    canvas_context.fillStyle = "#ff0000";
                     break;
                 
                 case FRUIT :
@@ -80,7 +73,6 @@ function draw()
 
 
 /* CREATION OF THE SNAKE */
-
 
 function createSnake(x_row,y_col, snakeLength)
 {
@@ -138,8 +130,8 @@ function setFood() {
 
 /* FUNCTION MAIN : STARTS THE GAME */
 
-function main()
-{
+window.onload = function() {
+
     // Create and initiate the canvas element
     canvas = document.createElement("canvas");
     canvas.width = COLS*16; // Multiply by 20 to display the canvas bigger
@@ -149,6 +141,22 @@ function main()
     // Add the canvas element to the body of the document
     document.body.appendChild(canvas);
 
+    document.addEventListener("keydown", keyDownEvent);
+
+    gameControl = startGame(x);
+
+};
+
+function startGame(x)
+{
+    gameActive = true;
+    init();
+    draw();
+    return setInterval(step, 1000/x);
+}
+
+function init() 
+{
     // Initiate the game
     createWorld(ROWS, COLS);
 
@@ -159,13 +167,40 @@ function main()
 
     // Set food on the grid
     setFood();
-
-    draw();
 }
 
-function changing_direction()
+function endGame() 
 {
-    const keyPressed = event.keyCode;
+    clearInterval(gameControl);
+    gameActive = false;
+
+    canvas_context.fillStyle = 'white';
+    canvas_context.textBaseline = 'middle'; 
+    canvas_context.textAlign = 'center'; 
+    canvas_context.font = 'normal bold 18px serif';
+    canvas_context.fillText('Game over', canvas.width/2, canvas.height/2);
+
+}
+
+
+function step()
+{
+    if(gameActive)
+    {
+        move_snake();
+        draw();
+    }
+    else
+    {
+        endGame();
+    }
+
+}
+
+
+function keyDownEvent(e) {
+    
+    var keyPressed = e.keyCode;
 
     const LEFT_KEY = 37;
     const RIGHT_KEY = 39;
@@ -191,13 +226,9 @@ function changing_direction()
        
         direction = DOWN;   
     }
+
 }
 
-function step()
-{
-    move_snake();
-    draw();
-}
 
 function move_snake()
 {
@@ -225,18 +256,44 @@ function move_snake()
             break;
     }
 
-    // Get the position of the tail
-    var tail = snake[0];
-    var tailX = tail[0];
-    var tailY = tail[1];
+    // checks all gameover conditions
 
-    // Remove the last position of the tail
-    removeTail(tailX, tailY);
+    if (0 > headX || headX > ROWS-1) 
+    {
+        gameActive = false;
+        return;
+    }
+
+    if (0 > headY || headY > COLS-1) 
+    {
+        gameActive = false;
+        return;
+    }
+
+    if(getCellWorld(headX, headY) === SNAKE && snake.length > 1)
+    {
+        gameActive = false;
+        return;
+    }
     
+
+    // check whether the new position are on the fruit item
+    
+    if (getCellWorld(headX, headY) === FRUIT) 
+    {
+        setFood();
+    } 
+    else 
+    {
+        // Get the position of the tail
+        var tail = snake[0];
+        var tailX = tail[0];
+        var tailY = tail[1];
+
+        // Remove the last position of the tail
+        removeTail(tailX, tailY);
+    }
+
     // Add new head 
     insertHead(headX, headY);
 }
-
-main();
-document.addEventListener("keydown", changing_direction);
-var myVar = setInterval(step, 50);
