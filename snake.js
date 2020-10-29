@@ -8,8 +8,10 @@ let direction = NONE;
 
 var canvas,	canvas_context;
 var gameActive, gameControl;
-// render X times per second
-var x = 10;
+var x = 200; // call step function X times per second
+var score;
+var level;
+
 
 /* CREATION OF THE WORLD */
 
@@ -69,6 +71,11 @@ function draw()
             canvas_context.fillRect(y*widthCell, x*heightCell, widthCell, heightCell);
         }
     }
+
+    // changes the fillstyle once more and draws the score
+    canvas_context.fillStyle = "#000";
+	canvas_context.font = "15px Helvetica";
+	canvas_context.fillText("SCORE : " + score, canvas.width/2, canvas.height-10);
 }
 
 
@@ -130,8 +137,19 @@ function setFood() {
 
 /* FUNCTION MAIN : STARTS THE GAME */
 
-window.onload = function() {
+function startMenu()
+{
+    var levelSelect = document.getElementById("levelSelect");
+    niveau = levelSelect.value;
+    
+    var startMenuDiv = document.getElementById("startMenu");
+    startMenuDiv.parentNode.removeChild(startMenuDiv);
+    initGame();
+}
 
+
+function initGame()
+{
     // Create and initiate the canvas element
     canvas = document.createElement("canvas");
     canvas.width = COLS*16; // Multiply by 20 to display the canvas bigger
@@ -144,21 +162,21 @@ window.onload = function() {
     document.addEventListener("keydown", keyDownEvent);
 
     gameControl = startGame(x);
-
-};
+}
 
 function startGame(x)
 {
     gameActive = true;
     init();
     draw();
-    return setInterval(step, 1000/x);
+    return setInterval(step, x);
 }
 
 function init() 
 {
     // Initiate the game
     createWorld(ROWS, COLS);
+    score = 0;
 
     // Initiate the snake
     var snakeX = Math.floor(ROWS/2);
@@ -278,9 +296,10 @@ function move_snake()
     
 
     // check whether the new position are on the fruit item
-    
+
     if (getCellWorld(headX, headY) === FRUIT) 
     {
+        score++;
         setFood();
     } 
     else 
