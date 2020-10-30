@@ -1,3 +1,5 @@
+/* VARIABLES */
+
 let world = [];
 var ROWS, COLS;
 var EMPTY = "EMPTY", SNAKE = "SNAKE", FRUIT = "FRUIT";
@@ -14,7 +16,7 @@ var foodDelay;
 
 var canvas,	canvas_context;
 var gameActive, gameControl;
-var delay; // call step function X times per second
+var delay; //snake speed
 var score;
 var level;
 
@@ -67,7 +69,7 @@ function draw()
     {
         for(var y = 0 ; y < COLS ; y++)
         {
-            // sets the fillstyle depending on the content of the cell
+            // set the fillstyle depending on the content of the cell
             switch (getCellWorld(x,y)) {
                 
 				case EMPTY:
@@ -87,7 +89,7 @@ function draw()
         }
     }
 
-    // changes the fillstyle once more and draws the score
+    // score
     canvas_context.fillStyle = "#f7f7f7";
 	canvas_context.font = "15px Helvetica";
 	canvas_context.fillText("SCORE : " + score, canvas.width/2, canvas.height-10);
@@ -122,7 +124,7 @@ function grow(x_row, y_col)
 function removeTail(x_row,y_col)
 {
     setCellWorld(EMPTY, x_row, y_col);
-    return snake.shift();
+    return snake.shift(); // Remove the first element of the snake array
 }
 
 
@@ -131,7 +133,7 @@ function removeTail(x_row,y_col)
 function setInitialFood(x_row, y_col)
 {
     setCellWorld(FRUIT, x_row, y_col);
-    foodMove = setTimeout(function () { removeFood(x_row, y_col);}, foodDelay);    
+    foodMove = setTimeout(function () { removeFood(x_row, y_col);}, foodDelay);  // Delete and mood food after "foodDelay" seconds
 }
 
 function setFoodRandom() {
@@ -150,7 +152,7 @@ function setFoodRandom() {
 		}
     }
     
-	// chooses a random cell
+	// choose a random cell
     var fruitCell = empty[Math.round(Math.random()*(empty.length - 1))];
     var x_row = fruitCell[0];
     var y_col = fruitCell[1];
@@ -167,13 +169,12 @@ function removeFood(x_row, y_row)
     {
         setCellWorld(EMPTY, x_row, y_row);
         setFoodRandom();
-        return;
     }
   
 }
 
 
-/* FUNCTION MAIN : STARTS THE GAME */
+/* START MENU */
 
 function startMenu()
 {
@@ -186,50 +187,12 @@ function startMenu()
     initGame();
 }
 
-
-function initGame()
-{
-    // Create and initiate the canvas element
-    canvas = document.createElement("canvas");
-    canvas.width = COLS*16; // Multiply by 20 to display the canvas bigger
-    canvas.height = ROWS*16;
-    canvas_context = canvas.getContext("2d");
-
-    // Add the canvas element to the body of the document
-    document.body.appendChild(canvas);
-
-    document.addEventListener("keydown", keyDownEvent);
-
-    gameControl = startGame(delay);
-}
-
-function startGame(delay)
-{
-    gameActive = true;
-    init();
-    return setInterval(step, delay);
-}
-
-function init() 
-{
-    createWorld(ROWS, COLS);
-    score = 0;
-
-    // Initiate the snake
-    var snakeX = snakeHeadPosition[0];
-    var snakeY = snakeHeadPosition[1];
-    createSnake(snakeX, snakeY, snakeLength);
-
-    // Set food on the grid
-    setInitialFood(initialFoodPosition[0], initialFoodPosition[1]);
-    draw();
-}
+/* Set variables' values depending on the mode chosen */
 
 function initiateLevel()
 {
     var request = new XMLHttpRequest();
 
-    // Initiate the game
     if(level === "level1")
     {
         request.open("GET", "../level1.json", false);
@@ -260,55 +223,46 @@ function initiateLevel()
     initialFoodPosition = Array.from(dataJson.food[0]);
 }
 
-function endGame() 
+
+
+function initGame()
 {
-    clearInterval(gameControl);  
+    // Create and initiate the canvas element
+    canvas = document.createElement("canvas");
+    canvas.width = COLS*16; // Multiply by 20 to display the canvas bigger
+    canvas.height = ROWS*16;
+    canvas_context = canvas.getContext("2d");
 
-    gameActive = false;
+    // Add the canvas element to the body of the document
+    document.body.appendChild(canvas);
 
-    canvas.parentNode.removeChild(canvas);
+    document.addEventListener("keydown", keyDownEvent);
 
-    var divGameOver = document.createElement("div");
-    divGameOver.classList += "text-white bg-dark text-center border rounded p-5 w-50"
-
-    var titleGameOver = document.createElement("h1");
-    titleGameOver.classList += "my-5";
-    titleGameOver.textContent = 'GAME OVER';
-
-    var divButton = document.createElement("div");
-    divButton.classList += "d-flex justify-content-center";
-
-    var refreshButton = document.createElement("button");
-    refreshButton.classList += "btn btn-danger btn-lg mb-5";
-    refreshButton.setAttribute('type', 'button');
-    refreshButton.setAttribute('onclick', "window.location.reload();");
-    refreshButton.textContent = "RESTART";
-
-    divButton.appendChild(refreshButton);
-    divGameOver.appendChild(titleGameOver);
-    divGameOver.appendChild(divButton);
-
-    document.body.appendChild(divGameOver);
-
-    deadAudio.play();
-
+    gameControl = startGame(delay);
 }
 
-
-function step()
+function startGame(delay)
 {
-    if(gameActive)
-    {
-        move_snake();
-        draw();
-    }
-    else
-    {
-        endGame();
-    }
-
+    gameActive = true;
+    init();
+    return setInterval(step, delay);
 }
 
+function init() 
+{
+    // Initiate the snake
+    createWorld(ROWS, COLS);
+    score = 0;
+
+    // Initiate the snake
+    var snakeX = snakeHeadPosition[0];
+    var snakeY = snakeHeadPosition[1];
+    createSnake(snakeX, snakeY, snakeLength);
+
+    // Set food on the grid
+    setInitialFood(initialFoodPosition[0], initialFoodPosition[1]);
+    draw();
+}
 
 function keyDownEvent(e) {
     
@@ -339,6 +293,19 @@ function keyDownEvent(e) {
         direction = DOWN;   
     }
 
+}
+
+function step()
+{
+    if(gameActive)
+    {
+        move_snake();
+        draw(); // re-draw the world
+    }
+    else
+    {
+        endGame(); // Game over
+    }
 }
 
 
@@ -412,5 +379,41 @@ function move_snake()
         // Add new head 
         insertHead(headX, headY);
     }
+}
+
+
+function endGame() 
+{
+    clearInterval(gameControl);  
+
+    gameActive = false;
+
+    canvas.parentNode.removeChild(canvas);
+
+    /* Game over interface */ 
     
+    var divGameOver = document.createElement("div");
+    divGameOver.classList += "text-white bg-dark text-center border rounded p-5 w-50"
+
+    var titleGameOver = document.createElement("h1");
+    titleGameOver.classList += "my-5";
+    titleGameOver.textContent = 'GAME OVER';
+
+    var divButton = document.createElement("div");
+    divButton.classList += "d-flex justify-content-center";
+
+    var refreshButton = document.createElement("button");
+    refreshButton.classList += "btn btn-danger btn-lg mb-5";
+    refreshButton.setAttribute('type', 'button');
+    refreshButton.setAttribute('onclick', "window.location.reload();");
+    refreshButton.textContent = "RESTART";
+
+    divButton.appendChild(refreshButton);
+    divGameOver.appendChild(titleGameOver);
+    divGameOver.appendChild(divButton);
+
+    document.body.appendChild(divGameOver);
+
+    deadAudio.play();
+
 }
